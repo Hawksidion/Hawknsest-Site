@@ -230,7 +230,7 @@
   let names = ['be the first to follow']; // shown only until real data loads
 
   const field = document.getElementById('nameField');
-  const durations = [38, 55, 44, 60, 41, 50, 47, 63]; // fixed, staggered speeds — same every load
+  const durations = [75, 110, 88, 120, 82, 100, 94, 126]; // fixed, staggered speeds — same every load
 
   function renderRows() {
     field.innerHTML = '';
@@ -272,10 +272,12 @@
       .then(r => r.json())
       .then(data => {
         if (data.length > 0) {
-          names = data.map(d => d.name);
+          const fetchedNames = data.map(d => d.name);
+          const changed = JSON.stringify(fetchedNames) !== JSON.stringify(names);
+          names = fetchedNames;
+          document.getElementById('footerCount').textContent = names.length;
+          if (changed) renderRows(); // only rebuild (and restart the scroll) if something's new
         }
-        renderRows();
-        document.getElementById('footerCount').textContent = names[0] === 'be the first to follow' ? 0 : names.length;
       })
       .catch(() => { /* backend asleep or unreachable — keep showing current names */ });
   }
@@ -298,3 +300,4 @@
 
 </body>
 </html>
+5
