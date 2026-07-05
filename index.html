@@ -226,14 +226,8 @@
 <footer>hawknest.xyz &nbsp;·&nbsp; <span id="footerCount">—</span> names and counting</footer>
 
 <script>
-  // ---- demo name pool (replace with a fetch to your backend's /api/names) ----
-  const names = [
-    "Skyler_VX","moonwake","BlueprintKid","hawk_eye_99","Tundra","forgeandflame",
-    "nyx.codes","GraniteJaw","PixelPelican","emberwatch","LunaDrift","Cobblecore",
-    "RustyAxolotl","northwind_","QuietQuarry","sable_smp","dandywren","IronOrchid",
-    "TheLongDrop","fennfox","gladeglow","OrePirate","Wispkin","copperbeard",
-    "duskrunner","ashwake","GraphitePaws","CinderCourt","hollowvane","mossport"
-  ];
+  const BACKEND_URL = 'https://hawknest-backend.onrender.com';
+  let names = ['be the first to follow']; // shown only until real data loads
 
   const field = document.getElementById('nameField');
   const durations = [38, 55, 44, 60, 41, 50, 47, 63]; // fixed, staggered speeds — same every load
@@ -265,7 +259,24 @@
     }
   }
 
+  function loadNames() {
+    fetch(BACKEND_URL + '/api/names')
+      .then(r => r.json())
+      .then(data => {
+        if (data.length > 0) {
+          names = data.map(d => d.name);
+        }
+        renderRows();
+        document.getElementById('footerCount').textContent = names[0] === 'be the first to follow' ? 0 : names.length;
+      })
+      .catch(() => { /* backend asleep or unreachable — keep showing current names */ });
+  }
+
   renderRows();
+  loadNames();
+
+  // check for new followers every 30 seconds while the page is open
+  setInterval(loadNames, 30000);
 
   // re-layout if the window is resized or a phone is rotated
   let resizeTimer;
@@ -273,8 +284,6 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(renderRows, 200);
   });
-
-  document.getElementById('footerCount').textContent = names.length;
 
   // TODO: replace `names` above with a fetch to the Twitch backend once it's live
 </script>
