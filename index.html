@@ -237,6 +237,7 @@
     const rowHeight = 25; // ~13px text + 6px gap, matches the CSS above
     const rowCount = Math.max(6, Math.ceil(window.innerHeight / rowHeight));
     const perRow = Math.min(names.length, 6);
+    const minBlockWidth = window.innerWidth * 1.5; // comfortable margin so no gap ever shows
 
     for (let i = 0; i < rowCount; i++) {
       const rowNames = [];
@@ -247,15 +248,22 @@
       const row = document.createElement('div');
       row.className = 'row ' + (i % 2 === 0 ? 'left' : 'right');
       row.style.animationDuration = durations[i % durations.length] + 's';
+      field.appendChild(row); // append early so scrollWidth can be measured as we build it
 
-      // duplicate so the horizontal loop is seamless
-      const doubled = [...rowNames, ...rowNames, ...rowNames, ...rowNames];
-      doubled.forEach(n => {
+      // keep adding names until this one "block" is wide enough to comfortably cover the screen
+      const block = [];
+      let n = 0;
+      while (row.scrollWidth < minBlockWidth || block.length < perRow) {
         const span = document.createElement('span');
-        span.textContent = n;
+        span.textContent = rowNames[n % rowNames.length];
         row.appendChild(span);
-      });
-      field.appendChild(row);
+        block.push(span);
+        n++;
+      }
+
+      // duplicate the whole block exactly once — two identical halves is what makes
+      // translateX(0% -> -50%) loop with no visible seam, at any screen width
+      block.forEach(span => row.appendChild(span.cloneNode(true)));
     }
   }
 
